@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { generateOpenAIImages } from "@/lib/openai";
+import { generateFluxImages } from "@/lib/replicate";
 import { buildPhotoclinicPrompt, getGenerationCategory } from "@/lib/prompt-builder";
-import { addFilmTexture } from "@/lib/photo-process";
 import { getSupabaseAdminClient, isSupabaseConfigured, referenceBucket } from "@/lib/supabase";
 import { getBase64DataUrl } from "@/lib/utils";
 import type { DirectorState, GeneratedImage } from "@/types/director";
@@ -29,29 +28,19 @@ async function ensureRequest(state: DirectorState, generatedPrompt: string) {
   return data.id as string;
 }
 
-async function persistGeneratedImage(requestId: string, image: GeneratedImage, base64?: string) {
+async function persistGeneratedImage(requestId: string, image: GeneratedImage) {
   if (!isSupabaseConfigured() || requestId.startsWith("local-")) return image.imageUrl;
   const supabase = getSupabaseAdminClient();
-  let imageUrl = image.imageUrl;
 
-  if (base64) {
-    const path = `generated/${requestId}/${image.variationNo}.jpg`;
-    const { error } = await supabase.storage.from(referenceBucket).upload(path, Buffer.from(base64, "base64"), {
-      contentType: "image/jpeg",
-      upsert: true
-    });
-    if (error) throw error;
-    imageUrl = supabase.storage.from(referenceBucket).getPublicUrl(path).data.publicUrl;
-  }
-
+  // Flux는 URL을 직접 반환 — Supabase DB에 URL만 저장
   const { error } = await supabase.from("generated_images").insert({
     request_id: requestId,
-    image_url: imageUrl,
+    image_url: image.imageUrl,
     variation_no: image.variationNo,
     image_category: image.imageCategory
   });
   if (error) throw error;
-  return imageUrl;
+  return image.imageUrl;
 }
 
 export async function POST(request: Request) {
@@ -60,28 +49,23 @@ export async function POST(request: Request) {
     const generatedPrompt = state.generatedPrompt || buildPhotoclinicPrompt(state);
     const requestId = await ensureRequest(state, generatedPrompt);
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.REPLICATE_API_TOKEN) {
       const placeholders = Array.from({ length: 4 }, (_, index) => ({
-        imageUrl: `https://placehold.co/1024x1024/fbf7ef/155855.png?text=PHOTOCLINIC+AI+${index + 1}`,
+        imageUrl: `https://placehold.co/1792x1024/fbf7ef/155855.png?text=PHOTOCLINIC+AI+${index + 1}`,
         variationNo: index + 1,
         imageCategory: getGenerationCategory(state)
       }));
       return NextResponse.json({ requestId, generatedPrompt, generatedImages: placeholders });
     }
 
-    const response = await generateOpenAIImages(generatedPrompt);
+    const imageUrls = await generateFluxImages(generatedPrompt, 4);
 
     const generatedImages: GeneratedImage[] = [];
-    for (const [index, item] of response.entries()) {
-      const rawBase64 = item.b64_json;
-      const base64 = rawBase64 ? await addFilmTexture(rawBase64) : undefined;
-      const remoteUrl = item.url;
-      const initialUrl = base64 ? getBase64DataUrl(base64) : remoteUrl || "";
+    for (const [index, imageUrl] of imageUrls.entries()) {
       const category = getGenerationCategory(state);
       const savedUrl = await persistGeneratedImage(
         requestId,
-        { imageUrl: initialUrl, variationNo: index + 1, imageCategory: category },
-        base64
+        { imageUrl, variationNo: index + 1, imageCategory: category }
       );
       generatedImages.push({ imageUrl: savedUrl, variationNo: index + 1, imageCategory: category });
     }
