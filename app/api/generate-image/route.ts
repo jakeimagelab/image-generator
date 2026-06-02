@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateFluxImages } from "@/lib/replicate";
-import { buildPhotoclinicPrompt, getGenerationCategory } from "@/lib/prompt-builder";
+import { buildFluxPrompt, getGenerationCategory } from "@/lib/prompt-builder";
 import { getSupabaseAdminClient, isSupabaseConfigured, referenceBucket } from "@/lib/supabase";
 import { getBase64DataUrl } from "@/lib/utils";
 import type { DirectorState, GeneratedImage } from "@/types/director";
@@ -46,7 +46,7 @@ async function persistGeneratedImage(requestId: string, image: GeneratedImage) {
 export async function POST(request: Request) {
   try {
     const state = (await request.json()) as DirectorState;
-    const generatedPrompt = state.generatedPrompt || buildPhotoclinicPrompt(state);
+    const generatedPrompt = state.generatedPrompt || buildFluxPrompt(state);
     const requestId = await ensureRequest(state, generatedPrompt);
 
     if (!process.env.REPLICATE_API_TOKEN) {
