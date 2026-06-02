@@ -71,7 +71,7 @@ export function buildPhotoclinicPrompt({
     photoRealism.join(", ") + ".",
     concern,
     urlHint,
-    "Premium hospital branding photograph suitable for website homepage, about page, Naver Place, and SNS. No exaggerated medical depictions, no unrealistic procedure scenes, no blood or wounds."
+    "Premium hospital branding photograph suitable for website homepage, about page, Naver Place, and SNS. Clean, tasteful, and professional medical imagery appropriate for all audiences."
   ]
     .filter(Boolean)
     .join(" ");
@@ -100,7 +100,7 @@ export function buildDetailedGenerationPrompt(input: GeneratorInput) {
     avatarRule,
     styleRules.join(", ") + ".",
     photoRealism.join(", ") + ".",
-    "Warm and premium hospital branding photo tone. White and ivory base palette, tidy and bright lighting. Clean and trustworthy medical advertising image. No exaggerated procedure effects, no blood, no wounds, no disturbing medical depictions.",
+    "Warm and premium hospital branding photo tone. White and ivory base palette, tidy and bright lighting. Clean and trustworthy medical advertising image appropriate for all audiences. Comfortable and welcoming hospital environment.",
     input.extraRequest ? `Additional request: ${input.extraRequest}.` : ""
   ]
     .filter(Boolean)
