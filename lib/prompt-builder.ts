@@ -2,14 +2,16 @@ import type { BasicInfo, DirectorState, GeneratorInput, ReferenceInfo, StyleInfo
 
 // Photography technical terms that push models toward realism instead of AI-art style
 const photoRealism = [
-  "photorealistic",
-  "shot on Sony A7R V with 85mm f/1.8 lens",
-  "natural soft window light",
-  "shallow depth of field",
-  "real photograph, not illustration",
-  "cinematic color grading",
-  "no AI artifacts, no plastic skin, no uncanny valley",
-  "high-end editorial photography"
+  "photorealistic DSLR photograph",
+  "Canon EOS R5, 85mm f/1.4L lens, ISO 400",
+  "natural window light with subtle fill, slight lens flare",
+  "shallow depth of field, bokeh background",
+  "film grain texture, slight chromatic aberration at edges",
+  "real photograph — not CGI, not illustration, not AI art",
+  "slight motion blur on non-subject elements",
+  "authentic skin texture with natural pores, no smoothing filter",
+  "high-end commercial editorial photography",
+  "shot in RAW, developed in Lightroom with warm color grade"
 ];
 
 const styleRules = [
