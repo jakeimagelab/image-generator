@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateOpenAIImages } from "@/lib/openai";
 import { buildPhotoclinicPrompt, getGenerationCategory } from "@/lib/prompt-builder";
+import { addFilmTexture } from "@/lib/photo-process";
 import { getSupabaseAdminClient, isSupabaseConfigured, referenceBucket } from "@/lib/supabase";
 import { getBase64DataUrl } from "@/lib/utils";
 import type { DirectorState, GeneratedImage } from "@/types/director";
@@ -34,9 +35,9 @@ async function persistGeneratedImage(requestId: string, image: GeneratedImage, b
   let imageUrl = image.imageUrl;
 
   if (base64) {
-    const path = `generated/${requestId}/${image.variationNo}.png`;
+    const path = `generated/${requestId}/${image.variationNo}.jpg`;
     const { error } = await supabase.storage.from(referenceBucket).upload(path, Buffer.from(base64, "base64"), {
-      contentType: "image/png",
+      contentType: "image/jpeg",
       upsert: true
     });
     if (error) throw error;
@@ -72,7 +73,8 @@ export async function POST(request: Request) {
 
     const generatedImages: GeneratedImage[] = [];
     for (const [index, item] of response.entries()) {
-      const base64 = item.b64_json;
+      const rawBase64 = item.b64_json;
+      const base64 = rawBase64 ? await addFilmTexture(rawBase64) : undefined;
       const remoteUrl = item.url;
       const initialUrl = base64 ? getBase64DataUrl(base64) : remoteUrl || "";
       const category = getGenerationCategory(state);
