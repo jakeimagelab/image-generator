@@ -2,16 +2,16 @@ import type { BasicInfo, DirectorState, GeneratorInput, ReferenceInfo, StyleInfo
 
 // Photography technical terms that push models toward realism instead of AI-art style
 const photoRealism = [
-  "photorealistic DSLR photograph",
-  "Canon EOS R5, 85mm f/1.4L lens, ISO 400",
-  "natural window light with subtle fill, slight lens flare",
-  "shallow depth of field, bokeh background",
-  "film grain texture, slight chromatic aberration at edges",
-  "real photograph — not CGI, not illustration, not AI art",
-  "slight motion blur on non-subject elements",
-  "authentic skin texture with natural pores, no smoothing filter",
-  "high-end commercial editorial photography",
-  "shot in RAW, developed in Lightroom with warm color grade"
+  "photorealistic DSLR photograph, indistinguishable from a real photo",
+  "Canon EOS R5, 85mm f/1.4L lens, ISO 320, aperture priority",
+  "soft natural side window light, gentle shadow on opposite side",
+  "extremely shallow depth of field — subject razor sharp, background creamy bokeh",
+  "authentic Korean skin texture with natural pores, no beauty filter, no skin smoothing",
+  "real photograph — not CGI, not digital illustration, not AI-generated art",
+  "warm ivory and beige color grade, slight warm tone in highlights",
+  "high-end Korean medical clinic editorial photography",
+  "shot in RAW, color graded in Lightroom — creamy, desaturated, film-like",
+  "subtle film grain, natural chromatic aberration at edges"
 ];
 
 const styleRules = [
@@ -102,6 +102,66 @@ export function buildDetailedGenerationPrompt(input: GeneratorInput) {
     photoRealism.join(", ") + ".",
     "Warm and premium hospital branding photo tone. White and ivory base palette, tidy and bright lighting. Clean and trustworthy medical advertising image appropriate for all audiences. Comfortable and welcoming hospital environment.",
     input.extraRequest ? `Additional request: ${input.extraRequest}.` : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/**
+ * Flux Dev 전용 프롬프트 빌더
+ * Flux는 키워드 나열보다 자연스러운 문장 묘사가 훨씬 효과적
+ */
+export function buildFluxPrompt({
+  basic,
+  style,
+  reference,
+  generator
+}: {
+  basic: BasicInfo;
+  style: StyleInfo;
+  reference: ReferenceInfo;
+  generator?: GeneratorInput;
+}): string {
+  const hospitalName = basic.hospitalName || "a premium medical clinic";
+  const hospitalType = style.hospitalType || "dermatology clinic";
+  const department = generator?.department || "dermatology";
+
+  // 장면 묘사를 자연스러운 문장으로 변환
+  const sceneDesc = generator?.scene
+    ? generator.scene
+    : style.imageTypes[0] === "상담 장면"
+      ? "a doctor calmly consulting with a patient"
+      : style.imageTypes[0] === "원장 프로필"
+        ? "a lead doctor posing professionally in the clinic"
+        : "the interior of an upscale medical clinic";
+
+  const doctorDesc = generator?.doctorDescription
+    ? generator.doctorDescription
+    : "a Korean female doctor in her early 30s, wearing a clean white coat, natural makeup, hair neatly tied back";
+
+  const interiorDesc = generator?.interior
+    || style.spaceTone
+    || "a minimalist consultation room with ivory and beige tones, warm ambient lighting, clean modern furniture";
+
+  const moodDesc = generator?.mood
+    || (style.moodTypes.length ? style.moodTypes.join(", ") : "warm, trustworthy, and professional");
+
+  const cameraDesc = generator?.cameraStyle
+    || "Canon EOS R5, 85mm f/1.4L lens at ISO 320, soft natural side window light, extremely shallow depth of field with creamy bokeh background";
+
+  const extraDesc = generator?.extraRequest || reference.concernText || "";
+
+  return [
+    `A photorealistic DSLR photograph of ${sceneDesc} at ${hospitalName}, a ${department} ${hospitalType}.`,
+    `Subject: ${doctorDesc}.`,
+    `The setting is ${interiorDesc}.`,
+    `Mood: ${moodDesc}.`,
+    `Shot with ${cameraDesc}.`,
+    `The subject is in sharp focus while the background melts into soft bokeh.`,
+    `Authentic skin texture with natural pores visible, no beauty filter or skin smoothing.`,
+    `Warm ivory and beige color grade, slight warm tone in highlights, subtle film grain.`,
+    `High-end Korean medical clinic editorial photography style. Real photograph, not CGI or illustration.`,
+    extraDesc ? `Additional detail: ${extraDesc}.` : ""
   ]
     .filter(Boolean)
     .join(" ");
