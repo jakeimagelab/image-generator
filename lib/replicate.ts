@@ -38,8 +38,7 @@ async function createPrediction(prompt: string): Promise<ReplicatePrediction> {
 
 // ── Flux Redux: 이미지 → 베리에이션 ────────────────────────
 async function createReduxPrediction(
-  imageUrl: string,
-  strength: number // 0.1 (원본 유지) ~ 1.0 (많이 변화)
+  imageUrl: string
 ): Promise<ReplicatePrediction> {
   const response = await fetch(`https://api.replicate.com/v1/models/${FLUX_REDUX_MODEL}/predictions`, {
     method: "POST",
@@ -144,7 +143,7 @@ export async function generateFluxVariations(
   if (!process.env.REPLICATE_API_TOKEN) throw new Error("REPLICATE_API_TOKEN이 설정되지 않았습니다.");
 
   const predictions = await Promise.all(
-    Array.from({ length: count }, () => createReduxPrediction(imageUrl, 0.8))
+    Array.from({ length: count }, () => createReduxPrediction(imageUrl))
   );
   const urls = await Promise.all(
     predictions.map(async (pred) => {
