@@ -254,12 +254,12 @@ export default function VariationPage() {
                                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
                       {selected.includes(url) ? "✓" : i + 1}
                     </div>
-                    <a href={url} download={`variation_${i+1}.jpg`} target="_blank"
-                      onClick={e => e.stopPropagation()}
+                    <button
+                      onClick={e => { e.stopPropagation(); window.open(url, "_blank"); }}
                       style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,.5)", color: "#fff",
-                               padding: "4px 10px", borderRadius: 8, fontSize: 10, textDecoration: "none", fontWeight: 700 }}>
+                               padding: "4px 10px", borderRadius: 8, fontSize: 10, border: "none", cursor: "pointer", fontWeight: 700 }}>
                       저장
-                    </a>
+                    </button>
                   </div>
                 ))}
               </div>
