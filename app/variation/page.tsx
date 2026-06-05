@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import Link from "next/link";
 
 const DIRECTIONS = [
   { key: "natural",  label: "자연스럽게",   desc: "원본 느낌 최대 유지",        emoji: "✨" },
@@ -52,8 +53,8 @@ export default function VariationPage() {
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
       setResults(data.images);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -81,7 +82,7 @@ export default function VariationPage() {
 
       {/* 헤더 */}
       <div style={{ background: "#155855", padding: "18px 24px", display: "flex", alignItems: "center", gap: 12 }}>
-        <a href="/" style={{ color: "rgba(255,255,255,.6)", fontSize: 12, textDecoration: "none" }}>← 홈</a>
+        <Link href="/" style={{ color: "rgba(255,255,255,.6)", fontSize: 12, textDecoration: "none" }}>← 홈</Link>
         <div style={{ width: 1, height: 14, background: "rgba(255,255,255,.2)" }}/>
         <div>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>📸 사진 베리에이션</div>
